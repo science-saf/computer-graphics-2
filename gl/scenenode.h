@@ -3,6 +3,7 @@
 #include <QObject>
 #include <memory>
 #include <stdint.h>
+#include <functional>
 
 class QPainter;
 class SceneNode;

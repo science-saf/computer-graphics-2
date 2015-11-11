@@ -2,6 +2,7 @@
 #include <QColor>
 #include <qopengl.h>
 #include "glhelper.h"
+#include <QPainter>
 
 static float Z_NEAR = 0.02;
 static float Z_FAR = 50.0;

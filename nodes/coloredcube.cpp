@@ -1,5 +1,6 @@
 #include "coloredcube.h"
 #include <qopengl.h>
+#include <QPainter>
 
 // Структура - трехмерный вектор
 struct Vec3
