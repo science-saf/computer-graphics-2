@@ -23,6 +23,9 @@ protected:
     void exposeEvent(QExposeEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
     void showEvent(QShowEvent *event) override;
+	void mousePressEvent(QMouseEvent *event) override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
+	void mouseMoveEvent(QMouseEvent *event) override;
 
 private slots:
     void deferRender();
@@ -32,9 +35,13 @@ private slots:
     void updateScene(BaseScene &scene);
 
 private:
+	void calculateLookFrom(int x, int y);
+	QVector3D m_lookFrom = QVector3D(6, 3, 2);
     QTime m_updateTime;
     bool m_canRender = false;
     bool m_updatePending = false;
+	bool m_isLMBPressed = false;
+	int m_radius = 10;
     std::vector<std::shared_ptr<BaseScene>> m_sceneStack;
-    QOpenGLContext *m_pContext = nullptr;
+	QOpenGLContext *m_pContext = nullptr;
 };

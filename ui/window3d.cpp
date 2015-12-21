@@ -2,12 +2,15 @@
 #include <QResizeEvent>
 #include <QPainter>
 #include <QGuiApplication>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 Window3D::Window3D(QWindow *parent)
     : QWindow(parent)
 {
     setSurfaceType(QWindow::OpenGLSurface);
     setFlags(Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint);
+	m_radius = sqrt(m_lookFrom.x() * m_lookFrom.x() + m_lookFrom.y() * m_lookFrom.y());
 }
 
 void Window3D::setFixedSize(QSize size)
@@ -134,9 +137,51 @@ void Window3D::updateScene(BaseScene &scene)
 
     QOpenGLPaintDevice device(size());
     QPainter painter(&device);
+	scene.camera().lookAt(m_lookFrom, QVector3D(0, 0, 0), QVector3D(0, 0, 1));
     scene.camera().loadMatrix();
     scene.render(painter);
     scene.visit([&](SceneNode & node) {
         node.render(painter);
     });
+}
+
+void Window3D::mousePressEvent(QMouseEvent *event)
+{
+	if (event->button() == Qt::LeftButton) {
+		m_isLMBPressed = true;
+	}
+}
+
+void Window3D::mouseReleaseEvent(QMouseEvent *event)
+{
+	if(event->button() == Qt::LeftButton) {
+		m_isLMBPressed = false;
+	}
+}
+
+void Window3D::mouseMoveEvent(QMouseEvent *event)
+{
+	if (m_isLMBPressed) {
+		int x = event->x();
+		int y = event->y();
+		calculateLookFrom(x, y);
+	}
+}
+
+void Window3D::calculateLookFrom(int x, int y)
+{
+	const float MIN_THETA = M_PI * 0.01;
+	const float MAX_THETA = M_PI - M_PI * 0.01;
+
+	float phi = (float) x / width() * M_PI * 2;
+	float theta = (float) y / height() * M_PI;
+	if (theta < MIN_THETA)
+		theta = MIN_THETA;
+	if (theta > MAX_THETA)
+		theta = MAX_THETA;
+	float newX = m_radius * sin(theta) * cos(phi);
+	float newY = m_radius * sin(theta) * sin(phi);
+	float newZ = m_radius * cos(theta);
+
+	m_lookFrom = QVector3D(newX, newY, newZ);
 }
