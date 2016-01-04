@@ -11,6 +11,8 @@ Window3D::Window3D(QWindow *parent)
     setSurfaceType(QWindow::OpenGLSurface);
     setFlags(Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint);
 	m_radius = sqrt(m_lookFrom.x() * m_lookFrom.x() + m_lookFrom.y() * m_lookFrom.y());
+	m_theta = acos((float) m_lookFrom.z() / m_radius);
+	m_phi = atan((float)m_lookFrom.y() / m_lookFrom.x());
 }
 
 void Window3D::setFixedSize(QSize size)
@@ -149,6 +151,8 @@ void Window3D::mousePressEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton) {
 		m_isLMBPressed = true;
+		m_oldX = event->x();
+		m_oldY = event->y();
 	}
 }
 
@@ -162,9 +166,30 @@ void Window3D::mouseReleaseEvent(QMouseEvent *event)
 void Window3D::mouseMoveEvent(QMouseEvent *event)
 {
 	if (m_isLMBPressed) {
-		int x = event->x();
-		int y = event->y();
-		calculateLookFrom(x, y);
+		calculateLookFrom(event->x(), event->y());
+	}
+}
+
+void Window3D::wheelEvent(QWheelEvent *event)
+{
+	const int DELTA_R_PER_STEP = 2;
+	const int ONE_STEP = 120;
+	const int MIN_RADIUS = 3;
+	const int MAX_RADIUS = 30;
+
+	int angleDelta = event->angleDelta().y();
+	if (angleDelta != 0)
+	{
+		m_radius -= (float)angleDelta / ONE_STEP * DELTA_R_PER_STEP;
+		if (m_radius < MIN_RADIUS)
+		{
+			m_radius = MIN_RADIUS;
+		}
+		else if (m_radius > MAX_RADIUS)
+		{
+			m_radius = MAX_RADIUS;
+		}
+		calculateLookFrom(m_oldX, m_oldY);
 	}
 }
 
@@ -172,16 +197,23 @@ void Window3D::calculateLookFrom(int x, int y)
 {
 	const float MIN_THETA = M_PI * 0.01;
 	const float MAX_THETA = M_PI - M_PI * 0.01;
+	const float RAD_TO_PX_COEFF = 0.005;
 
-	float phi = (float) x / width() * M_PI * 2;
-	float theta = (float) y / height() * M_PI;
-	if (theta < MIN_THETA)
-		theta = MIN_THETA;
-	if (theta > MAX_THETA)
-		theta = MAX_THETA;
-	float newX = m_radius * sin(theta) * cos(phi);
-	float newY = m_radius * sin(theta) * sin(phi);
-	float newZ = m_radius * cos(theta);
+	m_phi -= (x - m_oldX) * RAD_TO_PX_COEFF;
+	m_theta -= (y - m_oldY) * RAD_TO_PX_COEFF;
+	if (m_theta < MIN_THETA)
+	{
+		m_theta = MIN_THETA;
+	}
+	if (m_theta > MAX_THETA)
+	{
+		m_theta = MAX_THETA;
+	}
+	float newX = m_radius * sin(m_theta) * cos(m_phi);
+	float newY = m_radius * sin(m_theta) * sin(m_phi);
+	float newZ = m_radius * cos(m_theta);
 
 	m_lookFrom = QVector3D(newX, newY, newZ);
+	m_oldX = x;
+	m_oldY = y;
 }

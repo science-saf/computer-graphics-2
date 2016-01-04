@@ -26,6 +26,7 @@ protected:
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
+	void wheelEvent(QWheelEvent *event) override;
 
 private slots:
     void deferRender();
@@ -41,7 +42,11 @@ private:
     bool m_canRender = false;
     bool m_updatePending = false;
 	bool m_isLMBPressed = false;
-	int m_radius = 10;
+	int m_radius;
+	int m_oldX;
+	int m_oldY;
+	float m_phi;
+	float m_theta;
     std::vector<std::shared_ptr<BaseScene>> m_sceneStack;
 	QOpenGLContext *m_pContext = nullptr;
 };
